@@ -1,0 +1,255 @@
+1.一定要注意导入日期时候的包是util还是sql!!
+package com.imooc.db;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class DBUtil {
+	private static final String URL="jdbc:mysql://127.0.0.1:3306/immoc?useUnicoding=true&characterEncoding=utf-8";
+	private static final String USER="root";
+	private static final String PASSWORD="";
+	private static Connection conn=null;
+	static{
+		 try {
+			Class.forName("com.mysql.jdbc.Driver");
+			 conn = DriverManager.getConnection(URL, USER, PASSWORD);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public static Connection getConnection(){
+		return conn;
+	}
+	
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+package GoddessDao;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.PreparedStatement;
+import java.sql.Date;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import com.imooc.db.DBUtil;
+import model.Goddess;
+
+public class GoddesDao {
+   public void addGod(Goddess g) throws Exception{
+	   //连接到数据库
+	  Connection conn=DBUtil.getConnection();
+	  
+	  String sql="" + "insert into imooc_goddess " + " (user_name,sex,age,birthday,email,mobile,"+"create_user,create_date,update_user,update_date,isdel)"+" values(?,?,?,?,?,?,?,current_date(),?,current_date(),?)";
+	  //用预编译符占位，日期直接获取当前日期函数
+	  PreparedStatement ptmt=conn.prepareStatement(sql);
+	  //预编译sql语句
+	  //给编译符赋值
+	  ptmt.setString(1,g.getUser_name());//把数据集成的传递，不要写死，方便前台操作
+	  ptmt.setInt(2, g.getSex());
+	  ptmt.setInt(3, g.getAge());
+	  ptmt.setDate(4,new Date(g.getBirthday().getTime()));
+	  //！！！！类型不符传来的是java.util.birthday类型
+	  ptmt.setString(5, g.getEmail());
+	  ptmt.setString(6, g.getMobile());
+	  ptmt.setString(7, g.getCreate_user());
+	  ptmt.setString(8, g.getUpdata_user());
+	  ptmt.setInt(9,g.getIsdel());
+	  ptmt.execute();
+	  
+   }
+   public void updateGod(){
+	   
+   }
+   public void delGod(){
+	   
+   }
+   public List<Goddess> query() throws Exception{
+	   Connection conn=DBUtil.getConnection();
+	   Statement stmt=conn.createStatement();
+		 ResultSet rs=stmt.executeQuery("select user_name,age from imooc_goddess");
+		 List<Goddess> gs=new ArrayList<Goddess>();
+		 Goddess g=null;
+		 while(rs.next()){
+			 g=new Goddess();
+			 g.setUser_name(rs.getString("user_name"));
+			 g.setAge(rs.getInt("age"));
+			 gs.add(g);
+			 
+		 }
+	   return gs;
+   }
+   public Goddess get(){
+	   return null;
+   }
+ }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+package model;
+
+import java.util.Date;
+
+public class Goddess {
+   private Integer id;
+   private String user_name;
+   private Integer sex;
+   private Integer age;
+   private Date birthday;
+   private String email;
+   public Integer getId() {
+	return id;
+}
+public void setId(Integer id) {
+	this.id = id;
+}
+public String getUser_name() {
+	return user_name;
+}
+public void setUser_name(String user_name) {
+	this.user_name = user_name;
+}
+public Integer getSex() {
+	return sex;
+}
+public void setSex(Integer sex) {
+	this.sex = sex;
+}
+public Integer getAge() {
+	return age;
+}
+public void setAge(Integer age) {
+	this.age = age;
+}
+public Date getBirthday() {
+	return birthday;
+}
+public void setBirthday(java.util.Date date) {
+	this.birthday = (Date) date;
+}
+public String getEmail() {
+	return email;
+}
+public void setEmail(String email) {
+	this.email = email;
+}
+public String getMobile() {
+	return mobile;
+}
+public void setMobile(String mobile) {
+	this.mobile = mobile;
+}
+public String getCreate_user() {
+	return create_user;
+}
+public void setCreate_user(String create_user) {
+	this.create_user = create_user;
+}
+public String getUpdata_user() {
+	return updata_user;
+}
+public void setUpdata_user(String updata_user) {
+	this.updata_user = updata_user;
+}
+public Date getCreat_date() {
+	return creat_date;
+}
+public void setCreat_date(Date creat_date) {
+	this.creat_date = creat_date;
+}
+public Date getUpdate_date() {
+	return update_date;
+}
+public void setUpdate_date(Date update_date) {
+	this.update_date = update_date;
+}
+public Integer getIsdel() {
+	return isdel;
+}
+public void setIsdel(Integer isdel) {
+	this.isdel = isdel;
+}
+private String mobile;
+   private String create_user;
+   private String updata_user;
+   private Date creat_date;
+   private Date update_date;
+   private Integer isdel;
+   
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+package action;
+
+import java.util.Date;
+import java.util.List;
+
+import model.Goddess;
+import GoddessDao.GoddesDao;
+
+public class GoddessAction {
+   public static void main(String[] args) throws Exception{
+	   GoddesDao g=new GoddesDao();
+	    Goddess g1=new Goddess();
+	    g1.setUser_name("小橙");
+	    g1.setAge(22);
+	    g1.setSex(1);
+	    g1.setBirthday(new Date());
+	    g1.setEmail("xiaohong@qq.com");
+	    g1.setMobile("123134214");
+	    g1.setCreate_user("admin");
+	    g1.setUpdata_user("admin");
+	    g1.setIsdel(1);
+	    g.addGod(g1);
+	    
+	    
+    }
+}
+
+
