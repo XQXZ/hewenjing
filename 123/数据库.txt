@@ -1,0 +1,562 @@
+package action;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import model.Goddess;
+import GoddessDao.GoddesDao;
+
+public class GoddessAction {
+	public void add(Goddess goddess) throws Exception{
+		GoddesDao dao=new GoddesDao();
+		dao.addGod(goddess);
+	}
+	public void edit(Goddess goddess) throws SQLException{
+		GoddesDao dao=new GoddesDao();
+		dao.updateGod(goddess);
+	}
+	public Goddess get(Integer id) throws SQLException{
+		GoddesDao dao=new GoddesDao();
+		return dao.get(id);
+	}
+	public void del(Integer id) throws SQLException{
+		GoddesDao dao=new GoddesDao();
+		dao.delGod(id);
+	}
+	public List<Goddess> query()throws Exception{
+		GoddesDao dao=new GoddesDao();
+		return dao.query();
+	}
+	public List<Goddess> query(List<Map<String,Object>> params) throws Exception{
+		
+		GoddesDao dao =new GoddesDao();
+		return dao.query(params);
+	   }
+	}
+   /*public static void main(String[] args) throws Exception{
+	   GoddesDao g=new GoddesDao();
+	   //List<Goddess> result=g.query("小青");
+	   List<Map<String,Object>> params=new ArrayList<Map<String,Object>>();
+	   Map<String,Object> param=new HashMap<String,Object>();
+	   param.put("name", "mobile");
+	   param.put("rela","like");
+	   param.put("value", "'%1786430000%'");
+	   params.add(param);
+	   List<Goddess> result=g.query(params);
+	   for(int i=0;i<result.size();i++){
+		   System.out.println(result.get(i).toString());
+	   }
+	    /*Goddess g1=new Goddess();
+	    g1.setUser_name("小青");
+	    g1.setAge(20);
+	    g1.setSex(1);
+	    g1.setBirthday(new Date());
+	    g1.setEmail("xiao青@qq.com");
+	    g1.setMobile("1786430000");
+	    g1.setUpdata_user("hhhh");
+	    g1.setIsdel(1);*/
+	   // g.addGod(g1);
+	    //g1.setId(10);
+	   // Goddess g2=g.get(11);
+	   // System.out.println(g2.toString());
+	   // g.delGod(10);
+	   // g.updateGod(g1);
+	    //g.addGod(g1);
+	    
+	    
+    
+
+
+
+
+
+package com.imooc.db;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class DBUtil {
+	private static final String URL="jdbc:mysql://127.0.0.1:3306/immoc?useUnicoding=true&characterEncoding=utf-8";
+	private static final String USER="root";
+	private static final String PASSWORD="";
+	private static Connection conn=null;
+	static{
+		 try {
+			Class.forName("com.mysql.jdbc.Driver");
+			 conn = DriverManager.getConnection(URL, USER, PASSWORD);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public static Connection getConnection(){
+		return conn;
+	}
+	
+	
+}
+
+
+
+
+
+package GoddessDao;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.PreparedStatement;
+import java.sql.Date;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.imooc.db.DBUtil;
+
+import model.Goddess;
+
+public class GoddesDao {
+   public void addGod(Goddess g) throws Exception{
+	   //连接到数据库
+	  Connection conn=DBUtil.getConnection();
+	  
+	  String sql="" + "insert into imooc_goddess " + " (user_name,sex,age,birthday,email,mobile,"+"create_user,create_date,update_user,update_date,isdel)"+" values(?,?,?,?,?,?,?,current_date(),?,current_date(),?)";
+	  //用预编译符占位，日期直接获取当前日期函数
+	  PreparedStatement ptmt=conn.prepareStatement(sql);
+	  //预编译sql语句
+	  //给编译符赋值
+	  ptmt.setString(1,g.getUser_name());//把数据集成的传递，不要写死，方便前台操作
+	  ptmt.setInt(2, g.getSex());
+	  ptmt.setInt(3, g.getAge());
+	  ptmt.setDate(4,new Date(g.getBirthday().getTime()));
+	  //！！！！类型不符传来的是java.util.birthday类型
+	  ptmt.setString(5, g.getEmail());
+	  ptmt.setString(6, g.getMobile());
+	  ptmt.setString(7, g.getCreate_user());
+	  ptmt.setString(8, g.getUpdata_user());
+	  ptmt.setInt(9,g.getIsdel());
+	  ptmt.execute();
+	  
+   }
+   public void updateGod(Goddess g) throws SQLException{
+	   Connection conn=DBUtil.getConnection();
+		  
+		  String sql="" + " update imooc_goddess " + " set user_name=?,sex=?,age=?,birthday=?,email=?,mobile=?,"+" update_user=?,update_date=current_date(),isdel=?"+" where id=?";
+		  //用预编译符占位，日期直接获取当前日期函数
+		  PreparedStatement ptmt=conn.prepareStatement(sql);
+		  //预编译sql语句
+		  //给编译符赋值
+		  ptmt.setString(1,g.getUser_name());//把数据集成的传递，不要写死，方便前台操作
+		  ptmt.setInt(2, g.getSex());
+		  ptmt.setInt(3, g.getAge());
+		  ptmt.setDate(4,new Date(g.getBirthday().getTime()));
+		  //！！！！类型不符传来的是java.util.birthday类型
+		  ptmt.setString(5, g.getEmail());
+		  ptmt.setString(6, g.getMobile());
+		  ptmt.setString(7, g.getUpdata_user());
+		  ptmt.setInt(8,g.getIsdel());
+		  ptmt.setInt(9,g.getId());
+		  ptmt.execute();
+   }
+   public void delGod(Integer id) throws SQLException{
+	   Connection conn=DBUtil.getConnection();
+		  
+		  String sql="" + " delete from imooc_goddess " +
+		  " where id=?";
+		  //用预编译符占位，日期直接获取当前日期函数
+		  PreparedStatement ptmt=conn.prepareStatement(sql);
+		  //当相同的sql语句再次执行时，程序会使用PreparedStatement对象中的数据，而不需要对sql语句再次编译去查询数据库
+		  //预编译sql语句
+		  //给编译符赋值
+		  ptmt.setInt(1,id);
+		  ptmt.execute();
+   }
+   public List<Goddess> query() throws Exception{
+		List<Goddess> result=new ArrayList<Goddess>();
+		
+		Connection conn=DBUtil.getConnection();
+		StringBuilder sb=new StringBuilder();
+		sb.append("select id,user_name,age from imooc_goddess  ");
+		
+		PreparedStatement ptmt=conn.prepareStatement(sb.toString());
+		
+		ResultSet rs=ptmt.executeQuery();//执行查询语句，执行后返回代表结果集的ResultSet对象
+		//executeQuery()方法会把数据库响应的查询结果存放在ResultSet类对象中供我们使用。
+		
+		Goddess g=null;
+		while(rs.next()){//由next()方法由前向后逐个获取结果集中的数据，也可以获得任意位置数据的值
+			g=new Goddess();
+			g.setId(rs.getInt("id"));
+			g.setUser_name(rs.getString("user_name"));
+			g.setAge(rs.getInt("age"));
+			result.add(g);
+		}
+		return result;
+	}
+   public List<Goddess> query(List<Map<String,Object>> params) throws Exception{
+	  List<Goddess> result =new ArrayList<Goddess>();
+	  Connection conn=DBUtil.getConnection();
+	  //不懂这是什么意思
+	  StringBuilder sb=new StringBuilder();
+	  sb.append("select * from imooc_goddess where 1=1 ");
+	  
+	  if(params!=null&&params.size()>0){
+		  for(int i=0;i<params.size();i++){
+			  Map<String,Object>map=params.get(i);
+			  sb.append(" and "+map.get("name")+" "+map.get("rela")+map.get("value"));
+		  }
+	  }//一直到这
+	  PreparedStatement ptmt=conn.prepareStatement(sb.toString());
+	 
+	  ResultSet rs=ptmt.executeQuery();//executeQuery()方法会把数据库响应的查询结果存放在ResultSet类对象中供我们使用。
+	  Goddess g=null;
+	  while(rs.next()){//通过列名获取指定字段的值
+		  g=new Goddess();
+			 g.setId(rs.getInt("id"));
+			 g.setUser_name(rs.getString("user_name"));
+			 g.setAge(rs.getInt("age"));
+			 g.setSex(rs.getInt("sex"));
+			 g.setBirthday(rs.getDate("birthday"));
+			 g.setEmail(rs.getString("email"));
+			 g.setMobile(rs.getString("mobile"));
+			 g.setCreat_date(rs.getDate("create_date"));
+			 g.setCreate_user(rs.getString("create_user"));
+			 g.setUpdate_date(rs.getDate("update_date"));
+			 g.setUpdata_user(rs.getString("update_user"));
+			 g.setIsdel(rs.getInt("isdel"));
+			 result.add(g);
+	  }
+	  return result;
+   }
+   public Goddess get(Integer id) throws SQLException{
+	   Connection conn=DBUtil.getConnection();
+	   Goddess g=null;
+		  String sql="" + " select * from imooc_goddess " + 
+		  " where id=?";
+		  //用预编译符占位，日期直接获取当前日期函数
+		  PreparedStatement ptmt=conn.prepareStatement(sql);
+		  //预编译sql语句
+		  //给编译符赋值
+		  ptmt.setInt(1,id);
+		  //ptmt.execute();更改数据库
+		 ResultSet rs= ptmt.executeQuery();
+		 while(rs.next()){
+			 g=new Goddess();
+			 g.setId(rs.getInt("id"));
+			 g.setUser_name(rs.getString("user_name"));
+			 g.setAge(rs.getInt("age"));
+			 g.setSex(rs.getInt("sex"));
+			 g.setBirthday(rs.getDate("birthday"));
+			 g.setEmail(rs.getString("email"));
+			 g.setMobile(rs.getString("mobile"));
+			 g.setCreat_date(rs.getDate("create_date"));
+			 g.setCreate_user(rs.getString("create_user"));
+			 g.setUpdate_date(rs.getDate("update_date"));
+			 g.setUpdata_user(rs.getString("update_user"));
+			 
+		 }
+	   return g;
+   }
+ }
+
+
+
+package model;
+
+import java.util.Date;
+
+public class Goddess {
+   private Integer id;
+   private String user_name;
+   private Integer sex;
+   private Integer age;
+   private Date birthday;
+   private String email;
+   public Integer getId() {
+	return id;
+}
+public void setId(Integer id) {
+	this.id = id;
+}
+public String getUser_name() {
+	return user_name;
+}
+public void setUser_name(String user_name) {
+	this.user_name = user_name;
+}
+public Integer getSex() {
+	return sex;
+}
+public void setSex(Integer sex) {
+	this.sex = sex;
+}
+public Integer getAge() {
+	return age;
+}
+public void setAge(Integer age) {
+	this.age = age;
+}
+public Date getBirthday() {
+	return birthday;
+}
+public void setBirthday(java.util.Date date) {
+	this.birthday = (Date) date;
+}
+public String getEmail() {
+	return email;
+}
+public void setEmail(String email) {
+	this.email = email;
+}
+public String getMobile() {
+	return mobile;
+}
+public void setMobile(String mobile) {
+	this.mobile = mobile;
+}
+public String getCreate_user() {
+	return create_user;
+}
+public void setCreate_user(String create_user) {
+	this.create_user = create_user;
+}
+public String getUpdata_user() {
+	return updata_user;
+}
+public void setUpdata_user(String updata_user) {
+	this.updata_user = updata_user;
+}
+public Date getCreat_date() {
+	return creat_date;
+}
+public void setCreat_date(Date creat_date) {
+	this.creat_date = creat_date;
+}
+public Date getUpdate_date() {
+	return update_date;
+}
+public void setUpdate_date(Date update_date) {
+	this.update_date = update_date;
+}
+public Integer getIsdel() {
+	return isdel;
+}
+public void setIsdel(Integer isdel) {
+	this.isdel = isdel;
+}
+private String mobile;
+   private String create_user;
+   private String updata_user;
+   private Date creat_date;
+   private Date update_date;
+   private Integer isdel;
+@Override
+public String toString() {
+	return "Goddess [id=" + id + ", user_name=" + user_name + ", sex=" + sex
+			+ ", age=" + age + ", birthday=" + birthday + ", email=" + email
+			+ ", mobile=" + mobile + ", create_user=" + create_user
+			+ ", updata_user=" + updata_user + ", creat_date=" + creat_date
+			+ ", update_date=" + update_date + ", isdel=" + isdel + "]";
+}
+   
+}
+
+
+
+
+
+
+package test;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import model.Goddess;
+import action.GoddessAction;
+
+public class testAction {
+	public static void main(String[] args) throws Exception{
+	   GoddessAction action =new GoddessAction();
+	   /*
+	   List<Goddess> result=action.query();
+	   for(int i=0;i<result.size();i++){
+		    System.out.println(result.get(i).getId()+":"+result.get(i).getUser_name());
+	   }
+	   */
+	   Goddess g=new Goddess();
+	   g.setUser_name("小青update");
+	   g.setAge(23);
+	   g.setSex(1);
+	   g.setBirthday(new Date());
+	   g.setEmail("xiao紫@qq.com");
+	   g.setMobile("1786431111");
+	   g.setIsdel(0);
+	   g.setId(11);
+	   //action.add(g);
+	   //action.edit(g);
+	   //action.del(12);
+	   /*这一段不理解什么意思
+	   List <Map<String,Object>> params=new ArrayList<Map<String,Object>>();
+	   Map<String,Object> map=new HashMap<String,Object>();
+	   map.put("name", "user_name");
+	   map.put("rela", "=");
+	   map.put("value","'小青update'");
+	   params.add(map);
+	   List<Goddess> result =action.query(params);
+	   for(int i=0;i<result.size();i++){
+		    System.out.println(result.get(i).getId()+":"+result.get(i).getUser_name());
+	   }*/
+	}
+}
+
+
+
+
+package view;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Scanner;
+
+import action.GoddessAction;
+import model.Goddess;
+
+public class View {
+	private static final String CONTEXT="欢迎来到女神禁区：\n" +
+			"下面是女神禁区的功能列表：\n" +
+			"[MAIN/M]:主菜单\n" +
+			"[QUERY/Q]:查看全部女神的信息\n" +
+			"[GET/G]:查看某位女神的详细信息\n" +
+			"[ADD/A]:添加女神信息\n" +
+			"[UPDATE/U]:更新女神信息\n" +
+			"[DELETE/D]:删除女神信息\n" +
+			"[SEARCH/S]:查询女神信息(根据姓名、手机号来查询)\n" +
+			"[EXIT/E]:退出女神禁区\n" +
+			"[BREAK/B]:退出当前功能，返回主菜单";
+
+	private static final String OPERATION_MAIN="MAIN";
+	private static final String OPERATION_QUERY="QUERY";
+	private static final String OPERATION_GET="GET";
+	private static final String OPERATION_ADD="ADD";
+	private static final String OPERATION_UPDATE="UPDATE";
+	private static final String OPERATION_DELETE="DELETE";
+	private static final String OPERATION_SEARCH="SEARCH";
+	private static final String OPERATION_EXIT="EXIT";
+	private static final String OPERATION_BREAK="BREAK";
+
+	public static void main(String[] args) {
+		
+		System.out.println(CONTEXT);
+		//怎么保持程序一直运行
+		
+		Scanner scan=new Scanner(System.in);
+		Goddess goddess=new Goddess();
+		GoddessAction action=new GoddessAction();
+		String prenious=null;
+		Integer step=1;
+		while(scan.hasNext()){
+			String in=scan.next().toString();
+			if(OPERATION_EXIT.equals(in.toUpperCase())
+					||OPERATION_EXIT.substring(0, 1).equals(in.toUpperCase())){
+				System.out.println("您已成功退出女神禁区。");
+				break;
+			}else if(OPERATION_QUERY.equals(in.toUpperCase())
+					||OPERATION_QUERY.substring(0, 1).equals(in.toUpperCase())){
+				try {
+					List<Goddess> list=action.query();
+					for (Goddess go : list) {
+						System.out.println(go.getId()+",姓名："+go.getUser_name());
+					}
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				
+			}else if(OPERATION_ADD.equals(in.toUpperCase())
+					||OPERATION_ADD.substring(0, 1).equals(in.toUpperCase())
+					||OPERATION_ADD.equals(prenious)){
+				prenious=OPERATION_ADD;
+				//新增女神
+				
+				if(1==step){
+					System.out.println("请输入女神的［姓名］");
+				}else if(2==step){
+					goddess.setUser_name(in);
+					System.out.println("请输入女神的［年龄］");
+				}else if(3==step){
+					goddess.setAge(Integer.valueOf(in));
+					System.out.println("请输入女神的［生日］，格式如：yyyy-MM-dd");
+				}else if(4==step){
+					SimpleDateFormat sf=new SimpleDateFormat("yyyy-MM-dd");
+					Date birthday=null;
+					try {
+						birthday = sf.parse(in);
+						goddess.setBirthday(birthday);
+						System.out.println("请输入女神的［邮箱］");
+					} catch (ParseException e) {
+						e.printStackTrace();
+						System.out.println("您输入的格式有误，请重新输入");
+						step=3;
+					}
+				}else if(5==step){
+					goddess.setEmail(in);
+					System.out.println("请输入女神的［手机号］");
+				}else if(6==step){
+					goddess.setMobile(in);
+					
+					try {
+
+						goddess.setIsdel(0);
+
+						goddess.setSex(1);
+
+						action.add(goddess);
+
+						System.out.println("新增女神成功！");
+
+					} catch (Exception e) {
+
+						// TODO Auto-generated catch block
+
+						e.printStackTrace();
+
+						System.out.println("新增女神失败！");
+
+					}
+
+				} 
+				
+				if(OPERATION_ADD.equals(prenious)){
+					step++;					
+				}
+			}else{
+				System.out.println("您输入的值为:"+in);				
+			}
+			
+		}
+	}
+	   
+}
+
+
+
+
+
+
