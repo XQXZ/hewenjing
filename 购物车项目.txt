@@ -1,0 +1,348 @@
+
+1.商品类
+2.购物车类
+属性：1.购物车物品信息 2.商品总金额
+(1)购物车物品信息使用哪种集合？
+可选：
+1.list:大小不确定、可以存放多种类型、移除数据方便
+2.map:购物车像键值对的关系，使用map集合表示商品的集合，商品的对象充当键，商品数量充当值
+map集合取出的方式
+map集合的两种取出方式：
+1，Set<k> keySet：将map中所有的键存入到Set集合。因为set具备迭代器。
+    所有可以迭代方式取出所有的键，在根据get方法。获取每一个键对应的值。
+        
+
+    Map集合的取出原理：将map集合转成set集合。在通过迭代器取出。
+
+
+2，Set<Map.Entry<k,v>> entrySet：将map集合中的映射关系存入到了set集合中，
+                而这个关系的数据类型就是：Map.Entry
+
+                Entry其实就是Map中的一个static内部接口。
+                为什么要定义在内部呢？
+                因为只有有了Map集合，有了键值对，才会有键值的映射关系。
+                关系属于Map集合中的一个内部事物。
+                而且该事物在直接访问Map集合中的元素。
+
+3.set:
+1.它不允许出现重复元素；
+ 2.不保证集合中元素的顺序
+
+
+
+
+Cart类
+package entity;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+public class Cart {
+//购物车物品信息使用集合表示，集合有三种形式:序列（List）.set,hashset
+//购物车像键值对的关系，使用map集合表示商品的集合，商品的对象充当键，商品数量充当值
+private HashMap<Items,Integer> goods;
+private double totalPrice;
+//构造方法
+public Cart(){
+	goods=new HashMap<Items,Integer>();
+	totalPrice=0.0;
+}
+public HashMap<Items, Integer> getGoods() {
+	return goods;
+}
+public void setGoods(HashMap<Items, Integer> goods) {
+	this.goods = goods;
+}
+public double getTotalPrice() {
+	return totalPrice;
+}
+public void setTotalPrice(double totalPrice) {
+	this.totalPrice = totalPrice;
+}
+//1.添加商品进入购物车
+public boolean addGoodsInCart(Items item,int number){
+	//先判断原来购物车是否含有该商品
+	if(goods.containsKey(item)){
+		goods.put(item, goods.get(item)+number);
+	}
+	else{
+	goods.put(item,number);
+	}
+	calTotalPrice();
+	return true;
+}
+//2.删除商品
+public boolean removeGoodsFormCart(Items item){
+	goods.remove(item);
+	calTotalPrice();
+	return true;
+}
+//3.计算购物车总金额
+public double calTotalPrice(){
+	double sum=0.0;
+	Set<Items> keys=goods.keySet();//获得键的集合，将Map中所有的键存入到set集合中。因为set具备迭代器。所有可以迭代方式取出所有的键，再根据get方法。
+	//获取每一个键对应的值。 keySet():迭代后只能通过get()取key 
+	Iterator<Items> it=keys.iterator();//迭代器理解为遍历，
+	while(it.hasNext()){
+		Items i=it.next();
+		sum+=i.getPrice()*goods.get(i); //有了键可以通过map集合的get方法获取其对应的值。
+	}
+	this.setTotalPrice(sum);//设置购物车金额;
+	return this.getTotalPrice();
+	
+}
+//测试购物车
+public static void main(String[] args){
+	Items i1=new Items(1,"沃特篮球鞋","温州",200,500,"001.jpg");
+	Items i2=new Items(2,"李宁运动鞋","广州",300,500,"002.jpg");
+	Items i3=new Items(1,"沃特篮球鞋","温州",200,500,"001.jpg");
+	Cart c=new Cart();
+	c.addGoodsInCart(i1,1);
+	c.addGoodsInCart(i2,2);
+	c.addGoodsInCart(i3,3);
+	//遍历购物商品的集合
+	Set<Map.Entry<Items,Integer>> items=c.getGoods().entrySet();
+	for(Map.Entry<Items,Integer> obj:items){
+		System.out.println(obj);
+	}
+	System.out.println("购物车总金额："+c.getTotalPrice());
+	
+}
+}
+
+
+
+CartServlet
+package servlet;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import dao.ItemsDAO;
+import entity.Items;
+import entity.Cart;
+public class CartServlet extends HttpServlet {
+
+	private String action;//购物车的动作，add,.show,delete
+	//商品业务逻辑类
+	private ItemsDAO idao=new ItemsDAO();
+	/**
+	 * Constructor of the object.
+	 */
+	public CartServlet() {
+		super();
+	}
+
+	/**
+	 * Destruction of the servlet. <br>
+	 */
+	public void destroy() {
+		super.destroy(); // Just puts "destroy" string in log
+		// Put your code here
+	}
+
+	/**
+	 * The doGet method of the servlet. <br>
+	 *
+	 * This method is called when a form has its tag value method equals to get.
+	 * 
+	 * @param request the request send by the client to the server
+	 * @param response the response send by the server to the client
+	 * @throws ServletException if an error occurred
+	 * @throws IOException if an error occurred
+	 */
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		doPost(request,response);
+	}
+
+	/**
+	 * The doPost method of the servlet. <br>
+	 *
+	 * This method is called when a form has its tag value method equals to post.
+	 * 
+	 * @param request the request send by the client to the server
+	 * @param response the response send by the server to the client
+	 * @throws ServletException if an error occurred
+	 * @throws IOException if an error occurred
+	 */
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		response.setContentType("text/html;charset=utf-8");
+		PrintWriter out = response.getWriter();
+		if(request.getParameter("action")!=null){
+			this.action=request.getParameter("action");
+			if(action.equals("add")){
+				if(addToCart(request,response)){
+					//服务器内部跳转
+					request.getRequestDispatcher("/success.jsp").forward(request, response);
+				}
+				else{
+					request.getRequestDispatcher("/failure.jsp").forward(request, response);
+				}
+			}
+			if(action.equals("show")){
+				request.getRequestDispatcher("/cart.jsp").forward(request, response);
+			}
+			if(action.equals("delete")){
+				if(deleteFromCart(request,response)){
+					request.getRequestDispatcher("/cart.jsp").forward(request, response);
+				}
+				else{
+					request.getRequestDispatcher("/cart.jsp").forward(request, response);
+				}
+			}
+		}
+	}
+	private boolean deleteFromCart(HttpServletRequest request, HttpServletResponse response){
+		String id=request.getParameter("id");
+		Cart cart=(Cart)request.getSession().getAttribute("cart");
+		Items item=idao.getItemsById(Integer.parseInt(id));
+		if(cart.removeGoodsFormCart(item)){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+	//添加商品进购物车的方法
+	public boolean addToCart(HttpServletRequest request, HttpServletResponse response){
+		String id=request.getParameter("id");
+		String number=request.getParameter("num");
+		Items item=idao.getItemsById(Integer.parseInt(id));
+		//是否是第一次给购物车添加商品，需要给session中创建一个新的购物车对象
+		if(request.getSession().getAttribute("cart")==null){
+			Cart cart=new Cart();
+			request.getSession().setAttribute("cart", cart);
+		}
+		Cart cart=(Cart)request.getSession().getAttribute("cart");
+		if(cart.addGoodsInCart(item, Integer.parseInt(number))){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+	
+    
+	/**
+	 * Initialization of the servlet. <br>
+	 *
+	 * @throws ServletException if an error occurs
+	 */
+	public void init() throws ServletException {
+		// Put your code here
+	}
+
+}
+
+
+
+显示类
+<%@ page language="java" import="java.util.*" contentType="text/html; charset=utf-8"%>
+<%@ page import="entity.Cart" %>
+<%@ page import="entity.Items" %>
+<%
+String path = request.getContextPath();
+String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+%>
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <base href="<%=basePath%>">
+    <title>My JSP 'cart.jsp' starting page</title>
+ 	<meta http-equiv="pragma" content="no-cache">
+	<meta http-equiv="cache-control" content="no-cache">
+	<meta http-equiv="expires" content="0">    
+	<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+	<meta http-equiv="description" content="This is my page">
+	<!--
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	-->
+    <link type="text/css" rel="stylesheet" href="css/style1.css" />
+    <style>
+   img{
+       width:30%;
+       height:30%;
+   }
+   </style>
+   <script language="javascript">
+	    function delcfm() {
+	        if (!confirm("确认要删除？")) {
+	            window.event.returnValue = false;
+	        }
+	    }
+   </script>
+  </head>
+  
+  <body>
+   <h1>我的购物车</h1>
+   <a href="index.jsp">首页</a> >> <a href="index.jsp">商品列表</a>
+   <hr> 
+   <div id="shopping">
+   <form action="" method="">		
+			<table>
+				<tr>
+					<th>商品名称</th>
+					<th>商品单价</th>
+					<th>商品价格</th>
+					<th>购买数量</th>
+					<th>操作</th>
+				</tr>
+				<% 
+				   //首先判断session中是否有购物车对象
+				   if(request.getSession().getAttribute("cart")!=null)
+				   {
+				%>
+				<!-- 循环的开始 -->
+				     <% 
+				         Cart cart = (Cart)request.getSession().getAttribute("cart");
+				         HashMap<Items,Integer> goods = cart.getGoods();
+				         Set<Items> items = goods.keySet();
+				         Iterator<Items> it = items.iterator();
+				         
+				         while(it.hasNext())
+				         {
+				            Items i = it.next();
+				     %> 
+				<tr name="products" id="product_id_1">
+					<td class="thumb"><img src="images/<%=i.getPicture()%>" /><a href=""><%=i.getName()%></a></td>
+					<td class="number"><%=i.getPrice() %></td>
+					<td class="price" id="price_id_1">
+						<span><%=i.getPrice()*goods.get(i) %></span>
+						<input type="hidden" value="" />
+					</td>
+					<td class="number">
+                     	<%=goods.get(i)%>					
+					</td>                        
+                    <td class="delete">
+					  <a href="servlet/CartServlet?action=delete&id=<%=i.getId()%>" onclick="delcfm();">删除</a>					                  
+					</td>
+				</tr>
+				     <% 
+				         }
+				     %>
+				<!--循环的结束-->
+				
+			</table>
+			 <div class="total"><span id="total">总计：<%=cart.getTotalPrice() %>￥</span></div>
+			  <% 
+			    }
+			 %>
+			<div class="button"><input type="submit" value="" /></div>
+		</form>
+	</div>
+  </body>
+</html>
+
+
